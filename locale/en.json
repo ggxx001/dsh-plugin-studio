@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Plugin Sessions",
+    "description": "Open a modification session for any installed plugin, seeded with its paths and rows, and keep changing it in the conversation."
+  }
+}

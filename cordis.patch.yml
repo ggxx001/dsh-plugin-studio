@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-plugin-studio
+      name: '@ggxx/dsh-plugin-studio'
