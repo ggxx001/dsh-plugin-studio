@@ -5,7 +5,6 @@ window.__ModuleLoader__.load({
     const h = React.createElement
     const { useState, useEffect, useCallback, useMemo, useRef } = React
 
-    const SELF = '@ggxx/dsh-plugin-studio'
     const NS = 'dshPluginStudio'
     // Core bundles ship with the installation and are not a plugin to modify.
     const CORE = new Set(['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'])
@@ -20,40 +19,49 @@ window.__ModuleLoader__.load({
     const zh = {
       tab: '会话工坊',
       title: '插件会话工坊',
-      subtitle:
-        '自己写过的插件直接回到当时的会话继续写；其它插件点开就是带上下文的修改会话，说明要改成什么即可。',
+      subtitle: '按来源管理已安装插件的修改会话。本地开发的插件可恢复原会话，其余插件可创建带上下文的会话。',
       refresh: '刷新',
       refreshing: '正在刷新…',
-      loading: '正在读取插件库…',
-      loadError: '读取插件库失败',
+      autoRefresh: '实时同步',
+      autoRefreshHint: '每 5 秒同步一次插件库，安装、停用或移除的插件会自动更新。',
+      loading: '正在载入插件库…',
+      loadError: '插件库载入失败',
       retry: '重试',
-      empty: '插件库里还没有可修改的插件。',
-      noMatch: '没有匹配的插件。',
-      search: '搜索插件名、包名或描述',
+      empty: '插件库中没有可管理的插件。',
+      noMatch: '没有符合条件的插件。',
+      search: '搜索插件、包名或描述',
       statsInstalled: '已安装插件',
-      statsSessions: '有修改会话',
-      statsStale: '会话已失效',
+      statsSessions: '关联会话',
+      statsStale: '失效会话',
+      extrasTitle: '未安装的插件目录',
+      extrasHint: '工作区 plugins 目录中尚未加入当前 Profile 的插件，可在会话中安装后继续。',
+      tagUninstalled: '未安装',
+      actionInstall: '安装并创建会话',
       tagOn: '已启用',
       tagOff: '已停用',
       tagBuiltin: '内置',
       tagThird: '第三方',
+      tagLocal: '本地开发',
+      tagDownloaded: '下载安装',
+      tagBuiltinKind: '系统内置',
+      filterAll: '全部',
       tagStale: '会话失效',
       tagError: '异常',
       rows: '个插件行',
-      actionStart: '修改此插件',
-      actionContinue: '继续修改',
-      actionContinueWrite: '继续写',
-      actionNew: '新会话',
-      cardAria: '为这个插件打开修改会话',
-      sessionLast: '上次会话',
-      sessionWrote: '写它的会话',
-      candidatesTitle: '可能写过它的会话',
-      candidatesHint: '按会话标题和内容匹配。点一个直接接着写，不用重新建会话。',
-      candidateOpen: '接着写',
-      sessionMissing: '会话记录已失效，点开会重新建立。',
-      modalKicker: '插件会话窗口',
-      modalTitle: '修改会话',
-      modalSub: '会话会带着这个插件的路径和插件行开始，之后在对话里继续提要求即可。',
+      actionStart: '开始会话',
+      actionContinue: '继续会话',
+      actionContinueWrite: '继续编辑',
+      actionNew: '新建会话',
+      cardAria: '打开该插件的修改会话',
+      sessionLast: '最近会话',
+      sessionWrote: '关联会话',
+      candidatesTitle: '关联会话',
+      candidatesHint: '按标题匹配的既有会话。选择一条继续，无需重新建立上下文。',
+      candidateOpen: '继续',
+      sessionMissing: '关联会话已失效，打开时将重新建立。',
+      modalKicker: '插件会话',
+      modalTitle: '新建修改会话',
+      modalSub: '会话将携带该插件的来源、路径与插件行信息。',
       factsTitle: '插件信息',
       factPackage: '包名',
       factVersion: '版本',
@@ -63,72 +71,81 @@ window.__ModuleLoader__.load({
       factPatch: '补丁文件',
       factProfile: 'Profile',
       factRows: '插件行',
-      sourceUnknown: '未找到（可能随安装包内置）',
+      sourceUnknown: '未找到（随安装包内置）',
       sourceLoading: '正在解析…',
-      registrySuffix: '注册表安装',
+      registrySuffix: '注册表副本',
       registryNote:
-        '这是注册表安装的副本，直接改不会持久。通常把它复制到工作区、改成 link 安装或做成新 bundle；说明里已让 Agent 先给方案。',
-      briefLabel: '会话开场说明（可编辑）',
-      briefHint: '这段说明会作为会话的第一条消息发送。可以直接在后面追加你的修改要求，或先精简它。',
+        '该副本由注册表安装，直接修改不会持久。通常复制到工作区并改为 link 安装，或新建覆盖 bundle；开场说明已请求对应方案。',
+      briefLabel: '开场说明',
+      briefHint: '该说明将作为会话首条消息发送，可补充具体修改要求或先行精简。',
       cancel: '取消',
       close: '关闭',
-      start: '开始修改会话',
-      starting: '正在创建会话…',
-      continueLast: '继续上次会话',
-      started: '已打开修改会话，接着在对话里说需求就行。',
-      draftOpened: '已打开新会话，说明已经放进输入框，确认后发送。',
-      continued: '已回到上次的修改会话。',
-      continuedWriting: '已回到写这个插件的会话，接着说要改什么就行。',
-      staleCleared: '上次会话已不可用，已清除记录并打开新窗口。',
+      start: '创建会话',
+      starting: '正在创建…',
+      continueLast: '继续关联会话',
+      started: '修改会话已创建。',
+      draftOpened: '已创建会话，开场说明已填入输入框。',
+      continued: '已恢复关联会话。',
+      continuedWriting: '已恢复该插件的既有会话。',
+      staleCleared: '关联会话不可用，记录已清除。',
       startFailed: '创建会话失败',
-      promptFailed: '会话已建立，但开场说明没有发送成功',
-      continueFailed: '打开会话失败',
-      noRemote: '当前页面拿不到会话接口，请重开插件页面或重启应用。',
-      noWorkspace: '当前页面拿不到会话导航接口，请重开插件页面或重启应用。',
+      promptFailed: '会话已创建，但开场说明发送失败',
+      continueFailed: '无法打开会话',
+      noRemote: '会话服务不可用，请重新打开插件页面或重启应用。',
+      noWorkspace: '会话导航不可用，请重新打开插件页面或重启应用。',
       requestFailed: '请求失败',
-      factsFailed: '插件路径读取失败，下面的说明仍可编辑并开始会话。',
-      builtinNote: '内置插件的源码在安装包里，通常会新建一个本地 bundle 覆盖它。',
-      refreshHint: '读取的是当前 Profile 的插件库；链接安装的插件会显示真实源码目录。',
+      factsFailed: '无法读取插件路径，仍可编辑说明并创建会话。',
+      builtinNote: '内置插件源码随安装包发布，修改通常通过本地覆盖 bundle 实现。',
+      refreshHint: '数据来自当前 Profile 的插件库；本地链接安装的插件会显示真实源码目录。',
     }
 
     const en = {
       tab: 'Sessions',
       title: 'Plugin Sessions',
       subtitle:
-        'Plugins you wrote reopen in the session that wrote them; anything else opens a context-seeded modification session.',
+        'Manage modification sessions for installed plugins by origin. Locally developed plugins resume their original session; others receive a context-seeded session.',
       refresh: 'Refresh',
       refreshing: 'Refreshing…',
-      loading: 'Reading the plugin library…',
-      loadError: 'Could not read the plugin library',
+      autoRefresh: 'Live sync',
+      autoRefreshHint: 'Syncs the plugin library every 5 seconds; installs, disables and removals update automatically.',
+      loading: 'Loading the plugin library…',
+      loadError: 'Could not load the plugin library',
       retry: 'Retry',
-      empty: 'No editable plugins in the plugin library yet.',
-      noMatch: 'No plugin matches that search.',
-      search: 'Search plugin name, package or description',
+      empty: 'No manageable plugins in this library.',
+      noMatch: 'No plugin matches these filters.',
+      search: 'Search plugin, package or description',
       statsInstalled: 'Installed plugins',
-      statsSessions: 'With a session',
+      statsSessions: 'Linked sessions',
       statsStale: 'Stale sessions',
-      tagOn: 'On',
-      tagOff: 'Off',
+      extrasTitle: 'Uninstalled plugin folders',
+      extrasHint: 'Plugin folders under the workspace that are not in this profile. Install them in a session to continue.',
+      tagUninstalled: 'Not installed',
+      actionInstall: 'Install and create session',
+      tagOn: 'Enabled',
+      tagOff: 'Disabled',
       tagBuiltin: 'Built-in',
       tagThird: 'Third-party',
+      tagLocal: 'Local development',
+      tagDownloaded: 'Downloaded',
+      tagBuiltinKind: 'System',
+      filterAll: 'All',
       tagStale: 'Stale',
       tagError: 'Error',
       rows: 'plugin rows',
-      actionStart: 'Change this plugin',
-      actionContinue: 'Continue',
-      actionContinueWrite: 'Continue writing',
+      actionStart: 'Start session',
+      actionContinue: 'Continue session',
+      actionContinueWrite: 'Resume editing',
       actionNew: 'New session',
       cardAria: 'Open a modification session for this plugin',
-      sessionLast: 'Last session',
-      sessionWrote: 'Its session',
-      candidatesTitle: 'Sessions that already worked on it',
-      candidatesHint: 'Matched by session title and content. Pick one to keep going without creating a new session.',
+      sessionLast: 'Recent session',
+      sessionWrote: 'Linked session',
+      candidatesTitle: 'Linked sessions',
+      candidatesHint: 'Existing sessions matched by title. Choose one to continue without rebuilding context.',
       candidateOpen: 'Continue',
-      sessionMissing: 'The recorded session is gone; opening it starts a new one.',
-      modalKicker: 'Plugin session window',
-      modalTitle: 'Modification session',
-      modalSub:
-        'The session starts with this plugin’s paths and rows, then you keep asking for changes in the conversation.',
+      sessionMissing: 'The linked session is unavailable; opening will create a new one.',
+      modalKicker: 'Plugin session',
+      modalTitle: 'New modification session',
+      modalSub: 'The session will carry this plugin’s origin, paths and rows.',
       factsTitle: 'Plugin facts',
       factPackage: 'Package',
       factVersion: 'Version',
@@ -140,109 +157,129 @@ window.__ModuleLoader__.load({
       factRows: 'Rows',
       sourceUnknown: 'Not found (packaged with the installation)',
       sourceLoading: 'Resolving…',
-      registrySuffix: 'registry install',
+      registrySuffix: 'registry copy',
       registryNote:
-        'This is the registry-installed copy; editing it in place does not persist. The usual change is to copy it into the workspace and link it, or build a new bundle — the brief already asks the Agent for the plan.',
-      briefLabel: 'Opening brief (editable)',
-      briefHint:
-        'This text is sent as the first message of the session. Append your concrete change request, or trim it first.',
+        'This copy is registry-installed; editing in place does not persist. Copy it into the workspace and link it, or create an overriding bundle. The opening brief already asks for the plan.',
+      briefLabel: 'Opening brief',
+      briefHint: 'Sent as the first message of the session. Add your concrete request or trim it first.',
       cancel: 'Cancel',
       close: 'Close',
-      start: 'Start modification session',
-      starting: 'Creating the session…',
-      continueLast: 'Continue last session',
-      started: 'Modification session opened; keep describing the change in the conversation.',
-      draftOpened: 'New session opened with the brief in the composer; review it and send.',
-      continued: 'Back in your last modification session.',
-      continuedWriting: 'Back in the session that wrote this plugin; describe the next change there.',
-      staleCleared: 'The recorded session is gone; its entry was cleared and the window reopened.',
+      start: 'Create session',
+      starting: 'Creating…',
+      continueLast: 'Continue linked session',
+      started: 'Modification session created.',
+      draftOpened: 'Session created; the opening brief is in the composer.',
+      continued: 'Linked session restored.',
+      continuedWriting: 'Restored the existing session for this plugin.',
+      staleCleared: 'The linked session is unavailable; its record was cleared.',
       startFailed: 'Could not create the session',
       promptFailed: 'The session was created, but the opening brief could not be sent',
       continueFailed: 'Could not open the session',
-      noRemote: 'The session interface is unavailable on this page. Reopen the Plugins page or restart the app.',
-      noWorkspace: 'Session navigation is unavailable on this page. Reopen the Plugins page or restart the app.',
+      noRemote: 'The session service is unavailable. Reopen the Plugins page or restart the app.',
+      noWorkspace: 'Session navigation is unavailable. Reopen the Plugins page or restart the app.',
       requestFailed: 'Request failed',
-      factsFailed: 'Could not read the plugin paths; the brief below is still editable and the session can start.',
-      builtinNote: 'A built-in plugin ships inside the installation; the usual change is a local bundle that overrides it.',
-      refreshHint:
-        'This reads the current profile’s plugin library; link-installed plugins report their real source directory.',
+      factsFailed: 'Could not read the plugin paths; the brief is still editable and the session can start.',
+      builtinNote: 'Built-in plugins ship with the installation; changes usually take the form of a local overriding bundle.',
+      refreshHint: 'Reads the current profile’s plugin library; link-installed plugins report their real source directory.',
     }
 
     const CSS = `
-.dshs-page { box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; max-width: 980px; margin: 0 auto; padding: 18px 24px 48px; color: var(--dsw-alias-label-primary); font-size: 13px; }
-.dshs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.dshs-title { margin: 0 0 6px; font-size: 18px; line-height: 1.3; font-weight: 650; }
-.dshs-sub { margin: 0; max-width: 680px; font-size: 12px; line-height: 1.65; color: var(--dsw-alias-label-secondary); }
-.dshs-hint { margin: 0; font-size: 11px; line-height: 1.55; color: var(--dsw-alias-label-secondary); }
-.dshs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; }
-.dshs-stat { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); }
-.dshs-stat b { font-size: 20px; line-height: 1.15; font-weight: 650; }
-.dshs-stat span { font-size: 11px; color: var(--dsw-alias-label-secondary); }
+.dshs-page { box-sizing: border-box; display: flex; flex-direction: column; gap: 18px; max-width: 1000px; margin: 0 auto; padding: 24px 28px 56px; color: var(--dsw-alias-label-primary); font-size: 13px; }
+.dshs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.dshs-title { margin: 0 0 6px; font-size: 20px; line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; }
+.dshs-sub { margin: 0; max-width: 620px; font-size: 12.5px; line-height: 1.7; color: var(--dsw-alias-label-secondary); }
+.dshs-head-actions { display: flex; align-items: center; flex: none; gap: 12px; }
+.dshs-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .02em; color: var(--dsw-alias-label-secondary); white-space: nowrap; }
+.dshs-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-state-success-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-success-primary) 18%, transparent); }
+.dshs-hint { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.dshs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
+.dshs-stat { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); }
+.dshs-stat b { font-size: 24px; line-height: 1.1; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dshs-stat span { font-size: 11px; letter-spacing: .02em; color: var(--dsw-alias-label-secondary); }
+.dshs-filters { display: inline-flex; flex-wrap: wrap; gap: 2px; width: fit-content; max-width: 100%; padding: 3px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); }
+.dshs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 11.5px; line-height: 1; white-space: nowrap; cursor: pointer; }
+.dshs-chip:hover { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-2); }
+.dshs-chip.active { color: var(--dsw-alias-label-primary); background: color-mix(in srgb, var(--dsw-alias-brand-primary) 18%, transparent); }
+.dshs-chip:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: 1px; }
+.dshs-chip-count { font-size: 10.5px; font-variant-numeric: tabular-nums; color: var(--dsw-alias-label-secondary); }
 .dshs-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.dshs-search { flex: 1 1 260px; min-width: 180px; box-sizing: border-box; padding: 8px 11px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; }
+.dshs-search { flex: 1 1 260px; min-width: 180px; box-sizing: border-box; padding: 9px 12px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; }
 .dshs-search:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: -1px; }
-.dshs-list { display: flex; flex-direction: column; gap: 10px; }
-.dshs-card { box-sizing: border-box; display: flex; gap: 12px; width: 100%; padding: 14px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: inherit; font: inherit; text-align: start; cursor: pointer; }
-.dshs-card:hover { border-color: var(--dsw-alias-border-l2); }
-.dshs-card:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: 1px; }
-.dshs-icon { flex: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-brand-primary); font-size: 16px; font-weight: 700; }
+.dshs-list { display: flex; flex-direction: column; gap: 12px; }
+.dshs-card { box-sizing: border-box; display: flex; gap: 14px; width: 100%; padding: 16px 18px; border: 1px solid var(--dsw-alias-border-l1); border-inline-start: 3px solid transparent; border-radius: 14px; background: var(--dsw-alias-bg-layer-1); color: inherit; font: inherit; text-align: start; cursor: pointer; transition: border-color .16s ease, background-color .16s ease; }
+.dshs-card:hover { border-color: var(--dsw-alias-border-l2); background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 55%, var(--dsw-alias-bg-layer-1)); }
+.dshs-card:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: 2px; }
+.dshs-card.kind-local { border-inline-start-color: var(--dsw-alias-state-success-primary); }
+.dshs-card.kind-downloaded { border-inline-start-color: var(--dsw-alias-brand-primary); }
+.dshs-card.kind-builtin { border-inline-start-color: var(--dsw-alias-state-warn-primary); }
+.dshs-icon { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; overflow: hidden; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-brand-primary); font-size: 16px; font-weight: 600; }
 .dshs-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.dshs-main { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 0; }
-.dshs-name { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
-.dshs-name strong { font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+.dshs-main { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
+.dshs-name { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dshs-name strong { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
 .dshs-pkg { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace; font-size: 11px; line-height: 1.5; color: var(--dsw-alias-label-secondary); overflow-wrap: anywhere; }
-.dshs-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-secondary); }
-.dshs-tag { flex: none; padding: 3px 7px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 999px; font-size: 10px; line-height: 1.2; white-space: nowrap; color: var(--dsw-alias-label-secondary); }
-.dshs-tag.on { color: var(--dsw-alias-state-success-primary); }
+.dshs-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.dshs-tag { flex: none; padding: 3px 8px; border: none; border-radius: 6px; background: var(--dsw-alias-bg-layer-2); font-size: 10.5px; line-height: 1.3; letter-spacing: .02em; white-space: nowrap; color: var(--dsw-alias-label-secondary); }
+.dshs-tag.on { color: var(--dsw-alias-state-success-primary); background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 12%, transparent); }
 .dshs-tag.off { color: var(--dsw-alias-state-idle-primary); }
 .dshs-tag.builtin { color: var(--dsw-alias-state-warn-primary); }
 .dshs-tag.third { color: var(--dsw-alias-brand-primary); }
-.dshs-tag.err { color: var(--dsw-alias-state-error-primary); }
-.dshs-session { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 3px; padding: 6px 9px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-layer-2); font-size: 11px; line-height: 1.4; color: var(--dsw-alias-label-secondary); }
+.dshs-tag.err { color: var(--dsw-alias-state-error-primary); background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent); }
+.dshs-tag.kind-local { color: var(--dsw-alias-state-success-primary); background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 12%, transparent); }
+.dshs-tag.kind-downloaded { color: var(--dsw-alias-brand-primary); background: color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent); }
+.dshs-tag.kind-builtin { color: var(--dsw-alias-state-warn-primary); background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 12%, transparent); }
+.dshs-session { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 2px; padding: 8px 12px; border-radius: 10px; background: var(--dsw-alias-bg-layer-2); font-size: 11.5px; line-height: 1.5; color: var(--dsw-alias-label-secondary); }
 .dshs-session b { font-weight: 600; color: var(--dsw-alias-label-primary); overflow-wrap: anywhere; }
 .dshs-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.dshs-btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: transparent; color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; line-height: 1; white-space: nowrap; cursor: pointer; }
+.dshs-btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 9px; background: transparent; color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; }
 .dshs-btn:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); }
-.dshs-btn:disabled { opacity: .55; cursor: default; }
-.dshs-btn.primary { border-color: var(--dsw-alias-brand-primary); background: var(--dsw-alias-brand-primary); color: #fff; }
-.dshs-btn.primary:hover:not(:disabled) { background: var(--dsw-alias-brand-primary); filter: brightness(1.06); }
+.dshs-btn:disabled { opacity: .5; cursor: default; }
+.dshs-btn.primary { border-color: transparent; background: var(--dsw-alias-brand-primary); color: #fff; }
+.dshs-btn.primary:hover:not(:disabled) { filter: brightness(1.06); }
 .dshs-btn:focus-visible, .dshs-iconbtn:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: 1px; }
-.dshs-empty { padding: 18px; border: 1px dashed var(--dsw-alias-border-l1); border-radius: 10px; text-align: center; font-size: 12px; color: var(--dsw-alias-label-secondary); }
-.dshs-result { white-space: pre-wrap; overflow-wrap: anywhere; padding: 9px 11px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-layer-2); font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-secondary); }
-.dshs-result.ok { color: var(--dsw-alias-state-success-primary); }
-.dshs-result.err { color: var(--dsw-alias-state-error-primary); }
-.dshs-backdrop { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px; background: color-mix(in srgb, var(--dsw-alias-label-primary) 32%, transparent); }
-.dshs-modal { display: flex; flex-direction: column; width: min(700px, 100%); max-height: min(86vh, 820px); overflow: hidden; border: 1px solid var(--dsw-alias-border-l2); border-radius: 14px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 18px 50px color-mix(in srgb, var(--dsw-alias-label-primary) 22%, transparent); }
-.dshs-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px 18px 12px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
-.dshs-kicker { margin-bottom: 4px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--dsw-alias-label-secondary); }
-.dshs-modal-title { margin: 0; font-size: 17px; line-height: 1.3; font-weight: 650; }
+.dshs-empty { padding: 26px 18px; border: 1px dashed var(--dsw-alias-border-l1); border-radius: 12px; text-align: center; font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.dshs-extras { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.dshs-section-title { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .01em; }
+.dshs-extra { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px dashed var(--dsw-alias-border-l2); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); }
+.dshs-extra-main { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.dshs-extra-main b { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.dshs-result { white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-2); font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.dshs-result.ok { color: var(--dsw-alias-state-success-primary); border-color: color-mix(in srgb, var(--dsw-alias-state-success-primary) 30%, var(--dsw-alias-border-l1)); }
+.dshs-result.err { color: var(--dsw-alias-state-error-primary); border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 30%, var(--dsw-alias-border-l1)); }
+.dshs-backdrop { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 28px; background: color-mix(in srgb, var(--dsw-alias-label-primary) 30%, transparent); }
+.dshs-modal { display: flex; flex-direction: column; width: min(720px, 100%); max-height: min(86vh, 840px); overflow: hidden; border: 1px solid var(--dsw-alias-border-l2); border-radius: 16px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 24px 64px color-mix(in srgb, var(--dsw-alias-label-primary) 24%, transparent); }
+.dshs-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.dshs-kicker { margin-bottom: 4px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dsw-alias-label-secondary); }
+.dshs-modal-title { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
 .dshs-modal-sub { margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
-.dshs-iconbtn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
+.dshs-iconbtn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 18px; line-height: 1; cursor: pointer; }
 .dshs-iconbtn:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
-.dshs-modal-body { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; overflow-y: auto; }
-.dshs-facts { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); }
-.dshs-fact { display: flex; gap: 10px; font-size: 11.5px; line-height: 1.5; }
-.dshs-fact span { flex: none; width: 74px; color: var(--dsw-alias-label-secondary); }
+.dshs-modal-body { display: flex; flex-direction: column; gap: 12px; padding: 16px 22px; overflow-y: auto; }
+.dshs-facts { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); }
+.dshs-fact { display: flex; gap: 12px; font-size: 12px; line-height: 1.55; }
+.dshs-fact span { flex: none; width: 84px; color: var(--dsw-alias-label-secondary); }
 .dshs-fact b { min-width: 0; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace; font-weight: 450; overflow-wrap: anywhere; }
 .dshs-label { margin-top: 2px; font-size: 12px; font-weight: 600; }
-.dshs-textarea { box-sizing: border-box; width: 100%; min-height: 210px; resize: vertical; padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace; font-size: 12px; line-height: 1.6; }
+.dshs-textarea { box-sizing: border-box; width: 100%; min-height: 220px; resize: vertical; padding: 12px 14px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace; font-size: 12px; line-height: 1.65; }
 .dshs-textarea:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: -1px; }
-.dshs-modal-foot { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 12px 18px 16px; border-top: 1px solid var(--dsw-alias-border-l1); }
-.dshs-candidates { display: flex; flex-direction: column; gap: 6px; }
-.dshs-candidate { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 9px 11px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 9px; background: var(--dsw-alias-bg-layer-1); color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.dshs-modal-foot { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 14px 22px 18px; border-top: 1px solid var(--dsw-alias-border-l1); }
+.dshs-candidates { display: flex; flex-direction: column; gap: 8px; }
+.dshs-candidate { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .dshs-candidate:hover:not(:disabled) { border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-layer-2); }
-.dshs-candidate:disabled { opacity: .55; cursor: default; }
+.dshs-candidate:disabled { opacity: .5; cursor: default; }
 .dshs-candidate:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary)); outline-offset: 1px; }
 .dshs-candidate-main { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.dshs-candidate-main b { min-width: 0; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.dshs-candidate-main b { min-width: 0; font-size: 12.5px; font-weight: 600; overflow-wrap: anywhere; }
 .dshs-candidate-time { flex: none; font-size: 10.5px; color: var(--dsw-alias-label-secondary); }
-.dshs-candidate-snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11px; line-height: 1.5; color: var(--dsw-alias-label-secondary); overflow-wrap: anywhere; }
-@media (max-width: 620px) {
-  .dshs-page { padding: 14px 14px 36px; }
-  .dshs-card { padding: 12px; }
-  .dshs-backdrop { padding: 10px; }
-  .dshs-modal-body { padding: 12px; }
-  .dshs-modal-head, .dshs-modal-foot { padding-inline: 12px; }
+.dshs-candidate-snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11px; line-height: 1.55; color: var(--dsw-alias-label-secondary); overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .dshs-page { padding: 18px 16px 40px; }
+  .dshs-head { flex-direction: column; align-items: stretch; }
+  .dshs-head-actions { justify-content: space-between; }
+  .dshs-card { padding: 14px; }
+  .dshs-backdrop { padding: 12px; }
+  .dshs-modal-head, .dshs-modal-body, .dshs-modal-foot { padding-inline: 14px; }
+  .dshs-fact span { width: 68px; }
 }
 `
 
@@ -351,6 +388,28 @@ window.__ModuleLoader__.load({
       return slash >= 0 ? text.slice(slash + 1) : text
     }
 
+    /**
+     * Where an installed plugin came from:
+     * - installation: ships with the app
+     * - profile + editable source: written locally (link/file install)
+     * - profile without source: downloaded from a registry
+     */
+    function kindOf(bundle, facts) {
+      const availability = bundle?.availability
+      if (availability === 'installation') return 'builtin'
+      if (availability !== 'profile') return bundle?.official === true ? 'builtin' : 'downloaded'
+      if (facts?.sourceDir) return 'local'
+      if (facts === undefined) return 'unknown'
+      return 'downloaded'
+    }
+
+    function kindLabel(kind, t) {
+      if (kind === 'local') return t('tagLocal')
+      if (kind === 'downloaded') return t('tagDownloaded')
+      if (kind === 'builtin') return t('tagBuiltinKind')
+      return ''
+    }
+
     /** Character bigrams, ignoring spaces and punctuation, for loose title matching. */
     function gramsOf(text) {
       const clean = String(text || '')
@@ -426,8 +485,40 @@ window.__ModuleLoader__.load({
       const rows = (bundle?.rows || []).map((row) => row?.rowId).filter(Boolean)
       const title = displayName(bundle, language)
       const pkg = String(bundle?.name || '') + (bundle?.version ? '@' + bundle.version : '')
-      const mode = facts?.sourceDir ? 'source' : facts?.installedDir ? 'registry' : 'builtin'
+      const mode = bundle?.uninstalled
+        ? 'workspace'
+        : facts?.sourceDir
+          ? 'source'
+          : facts?.installedDir
+            ? 'registry'
+            : 'builtin'
+      const origin = kindOf(bundle, facts)
+      const originLabel =
+        (language === 'zh'
+          ? { local: '自己写的', downloaded: '下载的', builtin: '系统自带', unknown: '来源未识别' }
+          : { local: 'yours', downloaded: 'downloaded', builtin: 'built-in', unknown: 'unknown origin' })[origin] ||
+        (language === 'zh' ? '第三方' : 'third-party')
       if (language === 'zh') {
+        if (mode === 'workspace') {
+          return [
+            '【插件安装与修改会话】',
+            '',
+            '工作区里有一个还没安装的插件目录，我想在这里把它装上，然后继续改。',
+            '',
+            '插件：' + title,
+            '目录：' + facts.sourceDir + '（还没安装）',
+            facts?.profileDir ? 'Profile：' + facts.profileDir : null,
+            '',
+            '先做三件事：',
+            '1. 读这个目录里的 package.json、cordis.patch.yml、index.js、client.js，确认它是 DSH 插件，并说明它做什么。',
+            '2. 用 plugin_manager 的 install_bundle 安装这个目录；如实报告安装结果（已应用还是需要重启）。',
+            '3. 问我接下来要改什么。',
+            '',
+            '安装完成后先不要急着改代码，等我说需求。之后从「插件 → 会话工坊」里点这个插件，可以回到这条会话继续。',
+          ]
+            .filter(Boolean)
+            .join('\n')
+        }
         return [
           '【插件修改会话】',
           '',
@@ -435,7 +526,7 @@ window.__ModuleLoader__.load({
           '',
           '插件：' + title,
           '包名：' + pkg,
-          '状态：' + (bundle?.enabled ? '已启用' : '已停用') + ' · ' + (bundle?.official ? '官方/内置' : '第三方'),
+          '状态：' + (bundle?.enabled ? '已启用' : '已停用') + ' · ' + originLabel,
           rows.length > 0 ? '插件行：' + rows.join('、') : null,
           mode === 'source'
             ? '源码目录（可直接改）：' + facts.sourceDir
@@ -463,6 +554,26 @@ window.__ModuleLoader__.load({
           .filter(Boolean)
           .join('\n')
       }
+      if (mode === 'workspace') {
+        return [
+          '[Plugin install and modification session]',
+          '',
+          'A plugin directory in the workspace has not been installed yet; install it here, then keep changing it.',
+          '',
+          'Plugin: ' + title,
+          'Directory: ' + facts.sourceDir + ' (not installed yet)',
+          facts?.profileDir ? 'Profile: ' + facts.profileDir : null,
+          '',
+          'First do three things:',
+          '1. Read package.json, cordis.patch.yml, index.js and client.js in that directory, confirm it is a DSH plugin, and describe what it does.',
+          '2. Install the directory with plugin_manager install_bundle; report the actual result (applied or restart required).',
+          '3. Ask me what to change next.',
+          '',
+          'Do not edit code before I describe the change. Afterwards, open this plugin from "Plugins → Sessions" to come back to this conversation.',
+        ]
+          .filter(Boolean)
+          .join('\n')
+      }
       return [
         '[Plugin modification session]',
         '',
@@ -470,7 +581,7 @@ window.__ModuleLoader__.load({
         '',
         'Plugin: ' + title,
         'Package: ' + pkg,
-        'State: ' + (bundle?.enabled ? 'enabled' : 'disabled') + ' · ' + (bundle?.official ? 'official/built-in' : 'third-party'),
+        'State: ' + (bundle?.enabled ? 'enabled' : 'disabled') + ' · ' + originLabel,
         rows.length > 0 ? 'Rows: ' + rows.join(', ') : null,
         mode === 'source'
           ? 'Source (editable): ' + facts.sourceDir
@@ -579,6 +690,54 @@ window.__ModuleLoader__.load({
           return pending
         }
 
+        /** The path of the current (or most recently active) workspace. */
+        function workspaceRoot() {
+          try {
+            const workspaces = service('workspaces')?.list?.getSnapshot?.()
+            const sessions = service('sessions')?.list?.getSnapshot?.()
+            const items = Array.isArray(workspaces?.items) ? workspaces.items : []
+            let best = undefined
+            let bestTime = -1
+            for (const item of items) {
+              for (const id of Array.isArray(item?.sessionIds) ? item.sessionIds : []) {
+                const time = Number(sessions?.byId?.[id]?.updatedAt || 0)
+                if (time > bestTime) {
+                  bestTime = time
+                  best = item?.path
+                }
+              }
+            }
+            return best ?? items.find((item) => item?.path)?.path
+          } catch {
+            return undefined
+          }
+        }
+
+        /**
+         * Directories under `<workspace>/plugins` that are not installed bundles.
+         * Best-effort: the directory-picker Remote may be unavailable, and then
+         * this simply reports nothing.
+         */
+        async function scanWorkspacePlugins(root, installedNames) {
+          const picker = ctx.remote?.directoryPicker
+          if (!picker || typeof picker.list !== 'function' || !root) return []
+          let entries = []
+          try {
+            const controller = new AbortController()
+            const answer = await picker.list(String(root).replace(/[\\/]+$/, '') + '/plugins', controller.signal)
+            if (answer?.ok === true && Array.isArray(answer.value?.entries)) entries = answer.value.entries
+          } catch {
+            return []
+          }
+          const found = []
+          for (const entry of entries) {
+            const name = typeof entry?.name === 'string' ? entry.name : ''
+            if (!name || entry.hidden === true || installedNames.has(name)) continue
+            found.push({ name, path: entry.path || String(root) + '/plugins/' + name })
+          }
+          return found
+        }
+
         function workspaceService() {
           return service('uiWorkspace')
         }
@@ -666,6 +825,7 @@ window.__ModuleLoader__.load({
 
         function sessionTitle(bundle) {
           const label = displayName(bundle, language())
+          if (bundle?.uninstalled) return (language() === 'zh' ? '安装插件 · ' : 'Install plugin · ') + label
           return (language() === 'zh' ? '改插件 · ' : 'Edit plugin · ') + label
         }
 
@@ -675,17 +835,23 @@ window.__ModuleLoader__.load({
           const [state, setState] = useState({
             status: 'loading',
             bundles: [],
+            signature: '',
             liveSessions: null,
             titleIndex: new Map(),
             error: null,
+            lastSync: 0,
+            extraDirs: [],
+            extraSignature: '',
           })
           const [query, setQuery] = useState('')
+          const [kindFilter, setKindFilter] = useState('all')
           const [ledger, setLedger] = useState(() => readLedger())
           const [active, setActive] = useState(null)
           const [busy, setBusy] = useState(null)
           const [notice, setNotice] = useState(null)
           const [factsMap, setFactsMap] = useState({})
           const briefRef = useRef(null)
+          const loadingRef = useRef(false)
 
           useEffect(() => {
             const offLocale = ctx.locale.subscribe(() => setTick((value) => value + 1))
@@ -709,47 +875,109 @@ window.__ModuleLoader__.load({
             return source.subscribe(sync)
           }, [])
 
-          useEffect(() => {
-            let cancelled = false
-            const run = async () => {
+          // Load (and re-load) the installed bundle list. Auto refreshes stay
+          // silent; a manual refresh also drops cached facts so a moved source is
+          // resolved again.
+          const loadBundles = useCallback(async (mode) => {
+            if (loadingRef.current) return
+            loadingRef.current = true
+            if (mode !== 'auto') {
               setState((current) => ({
                 ...current,
                 status: current.bundles.length > 0 ? 'refreshing' : 'loading',
                 error: null,
               }))
-              try {
-                const bundles = await remoteCall('pluginManager', 'listBundles')
-                const index = sessionIndex()
-                let live = index.ids
-                if (!live) {
-                  try {
-                    const listed = await remoteCall('session', 'list', {})
-                    const items = Array.isArray(listed?.items) ? listed.items : []
-                    live = new Set(items.map((item) => item?.sessionId).filter(Boolean))
-                  } catch {
-                    live = null
-                  }
-                }
-                if (!cancelled) {
-                  setState({
-                    status: 'ready',
-                    bundles: Array.isArray(bundles) ? bundles : [],
-                    liveSessions: live,
-                    titleIndex: index.titles,
-                    error: null,
-                  })
-                }
-              } catch (error) {
-                if (!cancelled) {
-                  setState((current) => ({ ...current, status: 'error', error: textOf(error) }))
+            }
+            try {
+              const bundles = await remoteCall('pluginManager', 'listBundles')
+              const index = sessionIndex()
+              let live = index.ids
+              if (!live) {
+                try {
+                  const listed = await remoteCall('session', 'list', {})
+                  const items = Array.isArray(listed?.items) ? listed.items : []
+                  live = new Set(items.map((item) => item?.sessionId).filter(Boolean))
+                } catch {
+                  live = null
                 }
               }
+              const list = Array.isArray(bundles) ? bundles : []
+              const signature = list
+                .map((bundle) =>
+                  [
+                    bundle?.name,
+                    bundle?.version,
+                    bundle?.enabled ? 1 : 0,
+                    bundle?.installed ? 1 : 0,
+                    bundle?.availability,
+                  ].join(':'),
+                )
+                .sort()
+                .join('|')
+              setState((current) => ({
+                ...current,
+                status: 'ready',
+                error: null,
+                bundles: current.signature === signature && current.bundles.length > 0 ? current.bundles : list,
+                signature,
+                liveSessions: live ?? current.liveSessions,
+                titleIndex: index.titles,
+                lastSync: Date.now(),
+              }))
+              const root = workspaceRoot()
+              if (root) {
+                const installedNames = new Set()
+                for (const bundle of list) {
+                  if (!bundle?.name) continue
+                  installedNames.add(bundle.name)
+                  installedNames.add(baseNameOf(bundle.name))
+                }
+                scanWorkspacePlugins(root, installedNames)
+                  .then((dirs) => {
+                    const extraSignature = dirs.map((dir) => dir.name).join('|')
+                    setState((current) =>
+                      current.extraSignature === extraSignature
+                        ? current
+                        : { ...current, extraDirs: dirs, extraSignature },
+                    )
+                  })
+                  .catch(() => {
+                    /* best-effort */
+                  })
+              }
+            } catch (error) {
+              setState((current) => ({
+                ...current,
+                status: current.bundles.length > 0 ? 'ready' : 'error',
+                error: textOf(error),
+              }))
+            } finally {
+              loadingRef.current = false
             }
-            run()
+          }, [])
+
+          useEffect(() => {
+            loadBundles('initial')
+          }, [reloadToken, loadBundles])
+
+          // Live detection: poll the host's bundle directory and refresh on focus
+          // so a plugin installed while this page is open appears by itself.
+          useEffect(() => {
+            const tick = () => {
+              if (typeof document === 'undefined' || !document.hidden) loadBundles('auto')
+            }
+            const timer = setInterval(tick, 5000)
+            const onVisible = () => {
+              if (typeof document === 'undefined' || !document.hidden) loadBundles('auto')
+            }
+            document.addEventListener('visibilitychange', onVisible)
+            window.addEventListener('focus', onVisible)
             return () => {
-              cancelled = true
+              clearInterval(timer)
+              document.removeEventListener('visibilitychange', onVisible)
+              window.removeEventListener('focus', onVisible)
             }
-          }, [reloadToken])
+          }, [loadBundles])
 
           useEffect(() => {
             if (!notice) return undefined
@@ -785,7 +1013,7 @@ window.__ModuleLoader__.load({
 
           const installed = useMemo(() => {
             const list = (state.bundles || [])
-              .filter((bundle) => bundle && bundle.name !== SELF && !CORE.has(bundle.name))
+              .filter((bundle) => bundle && !CORE.has(bundle.name))
               .filter((bundle) => bundle.availability === 'installation' || bundle.installed === true)
               .filter((bundle) => !(bundle.error?.code === 'not-bundle' && (bundle.rows?.length || 0) === 0))
             const seen = new Set()
@@ -796,16 +1024,32 @@ window.__ModuleLoader__.load({
                 return true
               })
               .sort((left, right) => {
-                const official = Number(left.official === true) - Number(right.official === true)
-                if (official !== 0) return official
+                const rank = { local: 0, downloaded: 1, builtin: 2, unknown: 3 }
+                const delta =
+                  (rank[kindOf(left, factsMap[left.name])] ?? 3) - (rank[kindOf(right, factsMap[right.name])] ?? 3)
+                if (delta !== 0) return delta
                 return displayName(left, languageId).localeCompare(displayName(right, languageId))
               })
-          }, [state.bundles, languageId, tick])
+          }, [state.bundles, factsMap, languageId, tick])
+
+          const kindCounts = useMemo(() => {
+            const counts = { local: 0, downloaded: 0, builtin: 0, unknown: 0 }
+            for (const bundle of installed) counts[kindOf(bundle, factsMap[bundle.name])] += 1
+            return counts
+          }, [installed, factsMap])
+
+          const byKind = useMemo(
+            () =>
+              kindFilter === 'all'
+                ? installed
+                : installed.filter((bundle) => kindOf(bundle, factsMap[bundle.name]) === kindFilter),
+            [installed, kindFilter, factsMap],
+          )
 
           const visible = useMemo(() => {
             const needle = query.trim().toLowerCase()
-            if (!needle) return installed
-            return installed.filter((bundle) => {
+            if (!needle) return byKind
+            return byKind.filter((bundle) => {
               const haystack = [
                 bundle.name,
                 displayName(bundle, languageId),
@@ -817,7 +1061,24 @@ window.__ModuleLoader__.load({
                 .toLowerCase()
               return haystack.includes(needle)
             })
-          }, [installed, query, languageId, tick])
+          }, [byKind, query, languageId, tick])
+
+          /** Installed source directories, to avoid listing them as uninstalled folders. */
+          const installedDirs = useMemo(() => {
+            const set = new Set()
+            for (const facts of Object.values(factsMap)) {
+              if (facts?.sourceDir) set.add(String(facts.sourceDir).replace(/\\/g, '/').toLowerCase())
+            }
+            return set
+          }, [factsMap])
+
+          const extraDirs = useMemo(
+            () =>
+              state.extraDirs.filter(
+                (dir) => !installedDirs.has(String(dir.path).replace(/\\/g, '/').toLowerCase()),
+              ),
+            [state.extraDirs, installedDirs],
+          )
 
           const profilePlugins = useMemo(
             () => installed.filter((bundle) => bundle.availability === 'profile'),
@@ -912,6 +1173,11 @@ window.__ModuleLoader__.load({
             [state.liveSessions],
           )
 
+          const manualRefresh = useCallback(() => {
+            factsCache.clear()
+            setReloadToken((value) => value + 1)
+          }, [])
+
           const remember = useCallback((bundle, sessionId, title) => {
             const next = {
               ...readLedger(),
@@ -977,6 +1243,31 @@ window.__ModuleLoader__.load({
             },
             [factsMap],
           )
+
+          const openDirectoryWindow = useCallback((dir) => {
+            const bundle = {
+              name: dir.name,
+              uninstalled: true,
+              availability: 'workspace',
+              official: false,
+              enabled: false,
+              rows: [],
+              meta: { title: dir.name },
+            }
+            const facts = {
+              sourceDir: dir.path,
+              profileDir: workspaceRoot() ?? null,
+              patchPath: null,
+            }
+            setActive({
+              bundle,
+              facts,
+              factsState: 'ready',
+              brief: buildBrief(bundle, facts, language()),
+              touched: false,
+              error: null,
+            })
+          }, [])
 
           const openKnown = useCallback(
             (bundle, session) => {
@@ -1067,6 +1358,7 @@ window.__ModuleLoader__.load({
           function card(bundle) {
             const entry = entryOf(bundle)
             const live = isLive(entry)
+            const kind = kindOf(bundle, factsMap[bundle.name])
             const candidate = !(entry && live) ? discovered[bundle.name]?.[0] : undefined
             const title = displayName(bundle, languageId)
             const description =
@@ -1077,7 +1369,7 @@ window.__ModuleLoader__.load({
               'div',
               {
                 key: bundle.name,
-                className: 'dshs-card',
+                className: 'dshs-card kind-' + kind,
                 role: 'button',
                 tabIndex: 0,
                 'aria-label': t('cardAria') + ': ' + title,
@@ -1101,11 +1393,9 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'dshs-name' },
                   h('strong', null, title),
-                  h(
-                    'span',
-                    { className: 'dshs-tag ' + (bundle.official ? 'builtin' : 'third') },
-                    bundle.official ? t('tagBuiltin') : t('tagThird'),
-                  ),
+                  kind !== 'unknown'
+                    ? h('span', { className: 'dshs-tag kind-' + kind }, kindLabel(kind, t))
+                    : null,
                   h(
                     'span',
                     { className: 'dshs-tag ' + (bundle.enabled ? 'on' : 'off') },
@@ -1248,7 +1538,9 @@ window.__ModuleLoader__.load({
                             null,
                             (active.bundle.enabled ? t('tagOn') : t('tagOff')) +
                               ' · ' +
-                              (active.bundle.official ? t('tagBuiltin') : t('tagThird')),
+                              (active.bundle.uninstalled
+                                ? t('tagUninstalled')
+                                : kindLabel(kindOf(active.bundle, active.facts), t) || t('tagThird')),
                           ),
                         ),
                         h(
@@ -1401,14 +1693,24 @@ window.__ModuleLoader__.load({
                 h('p', { className: 'dshs-sub' }, t('subtitle')),
               ),
               h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'dshs-btn',
-                  disabled: state.status === 'loading' || state.status === 'refreshing',
-                  onClick: () => setReloadToken((value) => value + 1),
-                },
-                state.status === 'refreshing' ? t('refreshing') : t('refresh'),
+                'div',
+                { className: 'dshs-head-actions' },
+                h(
+                  'span',
+                  { className: 'dshs-live', title: t('autoRefreshHint') },
+                  h('span', { className: 'dshs-dot', 'aria-hidden': true }),
+                  t('autoRefresh'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dshs-btn',
+                    disabled: state.status === 'loading' || state.status === 'refreshing',
+                    onClick: manualRefresh,
+                  },
+                  state.status === 'refreshing' ? t('refreshing') : t('refresh'),
+                ),
               ),
             ),
             h(
@@ -1454,12 +1756,35 @@ window.__ModuleLoader__.load({
                       type: 'button',
                       className: 'dshs-btn',
                       style: { marginInlineStart: 10 },
-                      onClick: () => setReloadToken((value) => value + 1),
+                      onClick: manualRefresh,
                     },
                     t('retry'),
                   ),
                 )
               : null,
+            h(
+              'div',
+              { className: 'dshs-filters' },
+              [
+                { id: 'all', label: t('filterAll'), count: installed.length },
+                { id: 'local', label: t('tagLocal'), count: kindCounts.local },
+                { id: 'downloaded', label: t('tagDownloaded'), count: kindCounts.downloaded },
+                { id: 'builtin', label: t('tagBuiltinKind'), count: kindCounts.builtin },
+              ].map((tab) =>
+                h(
+                  'button',
+                  {
+                    key: tab.id,
+                    type: 'button',
+                    className: 'dshs-chip' + (kindFilter === tab.id ? ' active' : ''),
+                    'aria-pressed': kindFilter === tab.id,
+                    onClick: () => setKindFilter(tab.id),
+                  },
+                  tab.label,
+                  h('span', { className: 'dshs-chip-count' }, String(tab.count)),
+                ),
+              ),
+            ),
             h(
               'div',
               { className: 'dshs-toolbar' },
@@ -1481,6 +1806,36 @@ window.__ModuleLoader__.load({
                     installed.length === 0 ? t('empty') : t('noMatch'),
                   )
                 : h('div', { className: 'dshs-list' }, visible.map(card)),
+            extraDirs.length > 0
+              ? h(
+                  'section',
+                  { className: 'dshs-extras' },
+                  h('h3', { className: 'dshs-section-title' }, t('extrasTitle')),
+                  h('p', { className: 'dshs-hint' }, t('extrasHint')),
+                  extraDirs.map((dir) =>
+                    h(
+                      'div',
+                      { className: 'dshs-extra', key: dir.path },
+                      h(
+                        'div',
+                        { className: 'dshs-extra-main' },
+                        h('b', null, dir.name),
+                        h('span', { className: 'dshs-tag err' }, t('tagUninstalled')),
+                        h('span', { className: 'dshs-pkg' }, dir.path),
+                      ),
+                      h(
+                        'button',
+                        {
+                          type: 'button',
+                          className: 'dshs-btn primary',
+                          onClick: () => openDirectoryWindow(dir),
+                        },
+                        t('actionInstall'),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
             h('p', { className: 'dshs-hint' }, t('refreshHint')),
             modal,
           )
